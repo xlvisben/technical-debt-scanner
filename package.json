@@ -1,10 +1,17 @@
 {
   "name": "technical-debt-scanner",
-  "displayName": "technical-debt-scanner",
+  "displayName": "Technical debt scanner",
   "description": "An extension to keep track of technical debt",
+  "license": "MIT",
+  "author": {
+    "name": "Elvis"
+  },
+  "repository": {
+    "url": "https://github.com/xlvisben/technical-debt-scanner"
+  },
   "version": "0.0.1",
   "engines": {
-    "vscode": "1.112.0"
+    "vscode": "1.116.0"
   },
   "categories": [
     "Other"

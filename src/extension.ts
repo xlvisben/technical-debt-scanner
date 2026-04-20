@@ -107,7 +107,6 @@ async function scanFiles() {
 			}
 		} catch (err) {
 			vscode.window.showErrorMessage(`Failed to read ${file.fsPath}`);
-			console.error(`Failed to read ${file.fsPath}`, err);
 		}
 	}
 	vscode.window.showInformationMessage(`Technical debt scan complete. Found ${groupedResults.size} file with technical debt markers.`);
