@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="124"
+   height="124"
+   viewBox="0 0 16 16"
+   fill="none"
+   version="1.1"
+   id="svg2"
+   sodipodi:docname="icon.svg"
+   inkscape:version="1.4.3 (fcd0343856, 2026-01-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="namedview2"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="57.827455"
+     inkscape:cx="6.7960798"
+     inkscape:cy="8.6550584"
+     inkscape:window-width="1868"
+     inkscape:window-height="1011"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2" />
+  <path
+     d="M4 2H11L14 5V14H4V2Z"
+     stroke="currentColor"
+     stroke-width="1.2"
+     id="path1" />
+  <path
+     d="m 10.155666,1.4022416 v 4.3985056 h 4.398505"
+     stroke="currentColor"
+     stroke-width="1.31955"
+     id="path2" />
+  <circle
+     cx="7.690289"
+     cy="7.8823342"
+     r="1.837692"
+     fill="none"
+     stroke="currentColor"
+     stroke-width="0.735077"
+     id="circle2" />
+  <line
+     x1="9.2345972"
+     y1="9.3627367"
+     x2="11.234597"
+     y2="11.362737"
+     stroke="currentColor"
+     stroke-width="1.2"
+     stroke-linecap="round"
+     id="line2" />
+  <path
+     style="font-weight:900;font-stretch:expanded;font-size:2.66667px;font-family:'Zalando Sans Expanded';-inkscape-font-specification:'Zalando Sans Expanded,  Heavy Expanded';fill:#000000;stroke-width:100"
+     d="M 5.7550937,13.180942 V 11.71694 H 4.9710927 V 11.276939 H 7.1257622 V 11.71694 H 6.3444278 v 1.464002 z m 1.5813335,0 v -1.904003 h 1.3120017 q 0.2160003,0 0.4053339,0.06133 0.1893335,0.06133 0.330667,0.184 0.1440002,0.12 0.2240003,0.298667 0.082667,0.176 0.082667,0.408 0,0.186667 -0.053333,0.338667 -0.050667,0.149334 -0.1466669,0.264001 -0.096,0.114667 -0.2266669,0.192 -0.1306668,0.07733 -0.2880004,0.117334 -0.1546668,0.04 -0.3280004,0.04 z M 7.928428,12.735608 h 0.6400008 q 0.069333,0 0.1413335,-0.016 0.072,-0.01867 0.1386669,-0.05333 0.066667,-0.03733 0.1173334,-0.096 0.053333,-0.05867 0.082667,-0.144 0.032,-0.08533 0.032,-0.197334 0,-0.141333 -0.048,-0.237333 Q 8.987096,11.89294 8.9097626,11.834273 8.8350958,11.775606 8.744429,11.74894 8.6537622,11.722273 8.5684288,11.722273 H 7.928428 Z"
+     id="text2"
+     aria-label="TD" />
+</svg>
