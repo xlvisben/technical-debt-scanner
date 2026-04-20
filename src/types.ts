@@ -7,6 +7,7 @@ export type debtMatrixQuadrant = {
 };
 
 export interface FoundMatch {
+    debtQuadrant: number,
     label: string;
     uri: vscode.Uri;
     line: number;

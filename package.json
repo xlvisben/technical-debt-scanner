@@ -19,7 +19,7 @@
         {
           "id": "td-explorer",
           "title": "TD Scanner",
-          "icon": "$(search)"
+          "icon": "src/icon.svg"
         }
       ]
     },
@@ -28,7 +28,7 @@
         {
           "id": "td-scanner-view",
           "name": "Scanned Results",
-          "icon": "$(search)"
+          "icon": "src/icon.svg"
         }
       ]
     },

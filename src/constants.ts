@@ -19,7 +19,7 @@ export const TECHDEBTMATRIX: debtMatrixQuadrant[] = [
     {
         shortDescription: 'Inadvertent and Prudent',
         explanation: 'Now we know how we should have done it',
-        context: '',
+        context: 'Ok with it',
     }
 ];
 

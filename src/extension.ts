@@ -5,14 +5,10 @@ import { FoundMatch } from './types';
 // A simple global cache to store our found strings so the autocomplete is fast
 let groupedResults: Map<string, FoundMatch[]> = new Map();
 
-export function activate(context: vscode.ExtensionContext) {
-	console.log('TD Scanner extension is now active!');
-
-	// 1. Register the Activity Bar View
+export async function activate(context: vscode.ExtensionContext) {
 	const tdProvider = new TdViewProvider();
 	vscode.window.registerTreeDataProvider('td-scanner-view', tdProvider);
 
-	// 2. Register the Completion Item Provider (triggered by '~')
 	const completionProvider = vscode.languages.registerCompletionItemProvider(
 		{ scheme: 'file' },
 		{
@@ -43,12 +39,11 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(completionProvider, scanCommand);
 
-	// Run an initial scan when the extension loads
-	scanFiles().then(() => tdProvider.refresh());
+	await scanFiles();
+
+	tdProvider.refresh()
 }
 
-// Function to read td-watcher.txt and scan files
-// Function to scan files, automatically respecting .gitignore
 async function scanFiles() {
 	const workspaceFolders = vscode.workspace.workspaceFolders;
 	if (!workspaceFolders) return;
@@ -56,14 +51,11 @@ async function scanFiles() {
 	const workspaceRoot = workspaceFolders[0].uri;
 	const watcherFileUri = vscode.Uri.joinPath(workspaceRoot, 'td-watcher.txt');
 
-	// 1. Load the allow-list regex patterns from td-watcher.txt
 	let allowPatterns: RegExp[] = [];
 	try {
 		const fileData = await vscode.workspace.fs.readFile(watcherFileUri);
 
 		const regexLines = fileData.toString().split('\n');
-
-		console.log("The available lines", regexLines);
 
 		allowPatterns = regexLines
 			.map(line => line.trim())
@@ -74,22 +66,12 @@ async function scanFiles() {
 		return;
 	}
 
-	console.log("The allowed patterns:", allowPatterns);
-
-	// 2. Get all files that ARE NOT in .gitignore
-	// By passing 'undefined' as the second argument, we keep default exclusions active.
 	const allFiles = await vscode.workspace.findFiles('**/*.*', undefined);
 
-	console.log("All the files", allFiles);
-
 	for (const file of allFiles) {
-		// 3. Only process files that match one of your td-watcher.txt regex patterns
 		const isAllowed = allowPatterns.some(regex => regex.test(file.path));
-		console.log("The allowed status of ", file.path, " is ", isAllowed);
-		if (!isAllowed) continue;
 
-		console.log("The file path");
-		console.log(file);
+		if (!isAllowed) continue;
 
 		try {
 			const fileContent = await vscode.workspace.fs.readFile(file);
@@ -107,7 +89,10 @@ async function scanFiles() {
 				let match;
 
 				while ((match = targetStringRegex.exec(lineText)) !== null) {
+					const quadrant = parseInt(match[0].charAt(3));
+
 					fileMatches.push({
+						debtQuadrant: quadrant,
 						label: match[0],
 						uri: file,
 						line: lineIndex,
@@ -125,8 +110,7 @@ async function scanFiles() {
 			console.error(`Failed to read ${file.fsPath}`, err);
 		}
 	}
-	console.log(groupedResults);
-	vscode.window.showInformationMessage(`Technical debt scan complete. Found ${groupedResults.size} instance markers.`);
+	vscode.window.showInformationMessage(`Technical debt scan complete. Found ${groupedResults.size} file with technical debt markers.`);
 }
 
 // Provider to show data in the Activity Bar Tree View
@@ -167,7 +151,11 @@ class TdViewProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 		if (matches) {
 			return matches.map(match => {
 				const treeItem = new vscode.TreeItem(match.label, vscode.TreeItemCollapsibleState.None);
-				treeItem.description = `line ${match.line + 1}`;
+				if (TECHDEBTMATRIX[match.debtQuadrant] == undefined || match.debtQuadrant === null) {
+					treeItem.description = 'Invalid quadrant value';
+				} else {
+					treeItem.description = TECHDEBTMATRIX[match.debtQuadrant].context;
+				}
 
 				const endPosition = new vscode.Position(match.line, match.column + match.label.length);
 				const range = new vscode.Range(endPosition, endPosition);
