@@ -1,13 +1,9 @@
 import * as vscode from 'vscode';
 import { TECHDEBTMATRIX, TRIGGER_STRING } from './constants';
-
-
+import { FoundMatch } from './types';
 
 // A simple global cache to store our found strings so the autocomplete is fast
-let cachedSuggestions: string[] = [
-	`${TECHDEBTMATRIX[0].shortDescription} - need to see a better method to do this`,
-	`${TECHDEBTMATRIX[1].shortDescription} - supposed to implement repository pattern`,
-];
+let groupedResults: Map<string, FoundMatch[]> = new Map();
 
 export function activate(context: vscode.ExtensionContext) {
 	console.log('TD Scanner extension is now active!');
@@ -18,18 +14,15 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// 2. Register the Completion Item Provider (triggered by '~')
 	const completionProvider = vscode.languages.registerCompletionItemProvider(
-		{ scheme: 'file' }, // Applies to all local files
+		{ scheme: 'file' },
 		{
 			provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
-				// 1. Get the text from the start of the line to the current cursor position
-				const linePrefix = document.lineAt(position).text.substr(0, position.character);
+				const linePrefix = document.lineAt(position).text.substring(0, position.character);
 
-				// 2. Check if the line actually ends with our specific string
 				if (!linePrefix.endsWith(TRIGGER_STRING)) {
 					return undefined; // Don't show suggestions if the prefix doesn't match
 				}
 
-				// Return our cached strings as autocomplete suggestions
 				return TECHDEBTMATRIX.map((quadrant, index) => {
 					const itemLabel = `${index} - ${quadrant.shortDescription}`
 					const item = new vscode.CompletionItem(itemLabel, vscode.CompletionItemKind.Text);
@@ -45,7 +38,7 @@ export function activate(context: vscode.ExtensionContext) {
 	// 3. Command to trigger a manual scan (can be added to the UI later)
 	const scanCommand = vscode.commands.registerCommand('td-scanner.runScan', async () => {
 		await scanFiles();
-		tdProvider.refresh(); // Refresh the activity bar view
+		tdProvider.refresh();
 	});
 
 	context.subscriptions.push(completionProvider, scanCommand);
@@ -57,7 +50,6 @@ export function activate(context: vscode.ExtensionContext) {
 // Function to read td-watcher.txt and scan files
 // Function to scan files, automatically respecting .gitignore
 async function scanFiles() {
-	// cachedSuggestions = [];
 	const workspaceFolders = vscode.workspace.workspaceFolders;
 	if (!workspaceFolders) return;
 
@@ -68,46 +60,73 @@ async function scanFiles() {
 	let allowPatterns: RegExp[] = [];
 	try {
 		const fileData = await vscode.workspace.fs.readFile(watcherFileUri);
-		allowPatterns = fileData.toString()
-			.split('\n')
+
+		const regexLines = fileData.toString().split('\n');
+
+		console.log("The available lines", regexLines);
+
+		allowPatterns = regexLines
 			.map(line => line.trim())
 			.filter(line => line.length > 0)
 			.map(line => new RegExp(line));
 	} catch (error) {
-		console.error(error);
 		vscode.window.showErrorMessage('Missing or invalid td-watcher.txt');
 		return;
 	}
+
+	console.log("The allowed patterns:", allowPatterns);
 
 	// 2. Get all files that ARE NOT in .gitignore
 	// By passing 'undefined' as the second argument, we keep default exclusions active.
 	const allFiles = await vscode.workspace.findFiles('**/*.*', undefined);
 
+	console.log("All the files", allFiles);
+
 	for (const file of allFiles) {
 		// 3. Only process files that match one of your td-watcher.txt regex patterns
-		const isAllowed = allowPatterns.some(regex => regex.test(file.fsPath));
-
+		const isAllowed = allowPatterns.some(regex => regex.test(file.path));
+		console.log("The allowed status of ", file.path, " is ", isAllowed);
 		if (!isAllowed) continue;
+
+		console.log("The file path");
+		console.log(file);
 
 		try {
 			const fileContent = await vscode.workspace.fs.readFile(file);
+
 			const text = fileContent.toString();
 
-			// Match your specific strings (e.g., words starting with TD_)
-			const targetStringRegex = /TD_[A-Za-z0-9_]+/g;
-			let match;
+			const lines = text.split('\n');
 
-			while ((match = targetStringRegex.exec(text)) !== null) {
-				if (!cachedSuggestions.includes(match[0])) {
-					cachedSuggestions.push(match[0]);
+			const fileMatches: FoundMatch[] = [];
+
+			const targetStringRegex = /TD:[0-9]\s-\s.+/g;
+
+			lines.forEach((lineText, lineIndex) => {
+
+				let match;
+
+				while ((match = targetStringRegex.exec(lineText)) !== null) {
+					fileMatches.push({
+						label: match[0],
+						uri: file,
+						line: lineIndex,
+						column: match.index,
+					});
 				}
+
+			});
+
+			if (fileMatches.length > 0) {
+				groupedResults.set(file.fsPath, fileMatches);
 			}
 		} catch (err) {
+			vscode.window.showErrorMessage(`Failed to read ${file.fsPath}`);
 			console.error(`Failed to read ${file.fsPath}`, err);
 		}
 	}
-
-	vscode.window.showInformationMessage(`Technical debt scan complete. Found ${cachedSuggestions.length} instance markers.`);
+	console.log(groupedResults);
+	vscode.window.showInformationMessage(`Technical debt scan complete. Found ${groupedResults.size} instance markers.`);
 }
 
 // Provider to show data in the Activity Bar Tree View
@@ -123,16 +142,54 @@ class TdViewProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
 		return element;
 	}
 
-	getChildren(element?: vscode.TreeItem): Thenable<vscode.TreeItem[]> {
+	async getChildren(element?: vscode.TreeItem): Promise<vscode.TreeItem[]> {
+
 		if (!element) {
-			// Root level: show all cached suggestions
-			return Promise.resolve(
-				cachedSuggestions.map(suggestion => {
-					return new vscode.TreeItem(suggestion, vscode.TreeItemCollapsibleState.None);
-				})
-			);
+			if (groupedResults.size > 0) {
+				return Array.from(groupedResults.keys()).map(filePath => {
+					const item = new vscode.TreeItem(
+						vscode.Uri.file(filePath).path.split('/').pop() || filePath,
+						vscode.TreeItemCollapsibleState.Collapsed
+					);
+					item.resourceUri = vscode.Uri.file(filePath); // Shows file icon
+					item.contextValue = 'file';
+					return item;
+				});
+			} else {
+				return [
+					new vscode.TreeItem('No debt marker, yay :)', vscode.TreeItemCollapsibleState.None)
+				];
+			}
 		}
-		return Promise.resolve([]);
+
+		const matches = groupedResults.get(element.resourceUri?.fsPath || '');
+
+		if (matches) {
+			return matches.map(match => {
+				const treeItem = new vscode.TreeItem(match.label, vscode.TreeItemCollapsibleState.None);
+				treeItem.description = `line ${match.line + 1}`;
+
+				const endPosition = new vscode.Position(match.line, match.column + match.label.length);
+				const range = new vscode.Range(endPosition, endPosition);
+
+				// Navigation Command
+				treeItem.command = {
+					command: 'vscode.open',
+					title: "Go to match",
+					arguments: [
+						match.uri,
+						{
+							selection: range,
+							preserveFocus: false
+						}
+					]
+				};
+				return treeItem;
+			});
+		}
+		return [
+			new vscode.TreeItem('No debt marker, yay :)', vscode.TreeItemCollapsibleState.None)
+		];
 	}
 }
 
