@@ -9,7 +9,7 @@ Typehint for classifying technical debt according to the technical debt quadrant
 Check out a video demo below of adding the `td-watcher.txt` file and adding a regex for JS files.
 
 <video width="320" height="240" controls>
-  <source src="./vscode_tech_debt_extension.mp4" type="video/mp4">
+  <source src="./resources/vscode_tech_debt_extension.mp4" type="video/mp4">
   Your browser does not support the video tag.
 </video>
 
