@@ -13,6 +13,8 @@ Check out a video demo below of adding the `td-watcher.txt` file and adding a re
   Your browser does not support the video tag.
 </video>
 
+![TD-watcher Video](./resources/vscode_tech_debt_extension.mp4)
+
 ## Requirements
 
 1. Minimum requirement is vscode version 1.116.0 
